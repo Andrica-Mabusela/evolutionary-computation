@@ -1,0 +1,4 @@
+MIDIUtil==1.2.1
+pyo==1.0.5
+click==8.3.0
+wxPython==4.2.3
