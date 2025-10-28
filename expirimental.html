@@ -1,0 +1,185 @@
+<div class="finance-dashboard">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <h1>Finance Dashboard</h1>
+      <button class="notification-btn">
+        <i class="fas fa-bell"></i>
+      </button>
+    </div>
+    
+    <!-- Balance Card -->
+    <div class="balance-card">
+      <p class="balance-label">Total Balance</p>
+      <h2 class="balance-amount">${{ formatCurrency(metrics.netSavings) }}</h2>
+      <div class="balance-info">
+        <span class="growth-badge">
+          <i class="fas fa-arrow-up"></i>+12.5%
+        </span>
+        <span class="growth-text">vs last month</span>
+      </div>
+    </div>
+
+    <!-- Timeframe Selector -->
+    <div class="timeframe-selector">
+      <button 
+        *ngFor="let tf of timeframes"
+        [class.active]="timeframe === tf"
+        (click)="setTimeframe(tf)"
+        class="timeframe-btn">
+        {{ tf }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Key Metrics Grid -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Total Income</span>
+          <i class="fas fa-arrow-trend-up icon-green"></i>
+        </div>
+        <p class="metric-value">${{ (metrics.totalIncome / 1000).toFixed(1) }}k</p>
+        <p class="metric-change positive">+8.2%</p>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Total Expenses</span>
+          <i class="fas fa-arrow-trend-down icon-red"></i>
+        </div>
+        <p class="metric-value">${{ (metrics.totalExpenses / 1000).toFixed(1) }}k</p>
+        <p class="metric-change negative">+3.5%</p>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Savings Rate</span>
+          <i class="fas fa-piggy-bank icon-purple"></i>
+        </div>
+        <p class="metric-value">{{ metrics.savingsRate }}%</p>
+        <p class="metric-change positive">+2.1%</p>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Smoothed Income</span>
+          <i class="fas fa-chart-line icon-blue"></i>
+        </div>
+        <p class="metric-value">${{ metrics.smoothedIncome }}</p>
+        <p class="metric-change neutral">Monthly avg</p>
+      </div>
+    </div>
+
+    <!-- Income Smoothing Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Income Smoothing</h3>
+        <span class="chart-subtitle">Last 6 months</span>
+      </div>
+      <div class="chart-container">
+        <!-- Using ngx-charts or Chart.js -->
+        <div class="chart-placeholder">
+          <div class="line-chart">
+            <div *ngFor="let data of monthlyData" class="chart-point">
+              <span class="month">{{ data.month }}</span>
+              <div class="bars">
+                <div class="bar income" [style.height.px]="data.income / 30"></div>
+                <div class="bar smoothed" [style.height.px]="data.smoothed / 30"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-info">
+        <i class="fas fa-info-circle"></i>
+        Income smoothing helps predict stable monthly income by averaging fluctuations
+      </div>
+    </div>
+
+    <!-- Income vs Expenses Chart -->
+    <div class="chart-card">
+      <h3>Income vs Expenses</h3>
+      <div class="chart-container">
+        <div class="bar-chart">
+          <div *ngFor="let data of monthlyData" class="chart-group">
+            <div class="bars-group">
+              <div class="bar-income" [style.height.px]="data.income / 20"></div>
+              <div class="bar-expense" [style.height.px]="data.expenses / 20"></div>
+            </div>
+            <span class="month-label">{{ data.month }}</span>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <span class="legend-item">
+            <span class="legend-color income"></span> Income
+          </span>
+          <span class="legend-item">
+            <span class="legend-color expense"></span> Expenses
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expense Categories -->
+    <div class="chart-card">
+      <h3>Expense Breakdown</h3>
+      <div class="expense-list">
+        <div *ngFor="let cat of categoryExpenses" class="expense-item">
+          <div class="expense-header">
+            <div class="expense-name">
+              <div class="color-dot" [style.background-color]="cat.color"></div>
+              <span>{{ cat.name }}</span>
+            </div>
+            <span class="expense-value">${{ formatCurrency(cat.value) }}</span>
+          </div>
+          <div class="progress-bar">
+            <div 
+              class="progress-fill" 
+              [style.width.%]="getPercentage(cat.value)"
+              [style.background-color]="cat.color">
+            </div>
+          </div>
+          <p class="expense-percentage">{{ getPercentage(cat.value).toFixed(1) }}% of total</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financial Health Score -->
+    <div class="health-score-card">
+      <h3>Financial Health Score</h3>
+      <div class="score-content">
+        <div class="score-value">
+          <p class="score-number">8.5</p>
+          <p class="score-label">out of 10</p>
+        </div>
+        <div class="score-status">
+          <p class="status-label">Status</p>
+          <span class="status-badge">Excellent</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </button>
+    <button class="nav-item">
+      <i class="fas fa-chart-pie"></i>
+      <span>Analytics</span>
+    </button>
+    <button class="nav-item">
+      <i class="fas fa-wallet"></i>
+      <span>Wallet</span>
+    </button>
+    <button class="nav-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </button>
+  </nav>
+</div>

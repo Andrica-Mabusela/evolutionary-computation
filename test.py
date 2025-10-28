@@ -33,12 +33,14 @@ def progression_wave(progression, duration_per_chord=1.0, gap=0.1, sample_rate=4
     ])
 
 # --- Play multiple progressions ---
-def play_progressions(progressions, duration_per_chord=1.0, gap_between_chords=0.03, gap_between_progressions=0.5, sample_rate=44100):
+def play_progressions(progressions, duration_per_chord=1.0, gap_between_chords=0.03, gap_between_progressions=0.1, sample_rate=44100):
     silence_between_progressions = np.zeros(int(sample_rate * gap_between_progressions))
     song = np.concatenate([
         np.concatenate((progression_wave(prog, duration_per_chord, gap_between_chords, sample_rate), silence_between_progressions))
         for prog in progressions
     ])
+    
+    print(f"Song Length is: {len(song)}")
     sd.play(song, sample_rate)
     sd.wait()
 
@@ -49,7 +51,8 @@ if __name__ == "__main__":
 
     # Print chord names for clarity
     for i, prog in enumerate(progressions):
-        print(f"Progression {i+1}: {[ [n for n, _ in chord] for chord in prog ]}")
+        # print(f"Progression {i+1}: {[ [n for n, _ in chord] for chord in prog ]}")
+        pass
 
     # Play them all
     play_progressions(progressions, duration_per_chord=1.0)
