@@ -1,0 +1,229 @@
+<div class="landing-page">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>Welcome Back!</h1>
+        <p class="user-name">{{ userName }}</p>
+      </div>
+      <div class="user-avatar">
+        <i class="fas fa-user"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Tier Status Card -->
+    <div class="tier-status-card">
+      <h2>Your Tier Status</h2>
+      
+      <!-- Doughnut Chart -->
+      <div class="doughnut-chart-container">
+        <svg width="240" height="240" viewBox="0 0 200 200">
+          <g *ngFor="let tier of tiers; let i = index">
+            <path
+              [attr.d]="createDoughnutPath(i, 4, tier.id === currentTier)"
+              [attr.fill]="tier.color"
+              [style.opacity]="tier.id === currentTier ? 1 : 0.3"
+              [style.filter]="tier.id === currentTier ? 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' : 'none'"
+              class="tier-segment"
+              (click)="selectTier(tier.id)">
+            </path>
+            <!-- Tier Labels -->
+            <text
+              [attr.x]="getTierLabelPosition(i).x"
+              [attr.y]="getTierLabelPosition(i).y"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              class="tier-label"
+              [attr.fill]="tier.id === currentTier ? tier.color : '#94a3b8'">
+              T{{ tier.id }}
+            </text>
+          </g>
+          
+          <!-- Center Content -->
+          <circle cx="100" cy="100" r="45" fill="white" />
+          <text x="100" y="95" text-anchor="middle" class="center-label" fill="#64748b">
+            Current Tier
+          </text>
+          <text x="100" y="110" text-anchor="middle" class="center-value" [attr.fill]="getCurrentTier().color">
+            {{ currentTier }}
+          </text>
+        </svg>
+      </div>
+
+      <!-- Current Tier Info -->
+      <div class="current-tier-info">
+        <div class="tier-badge" [style.background-color]="getCurrentTier().color + '20'">
+          <div class="tier-dot" [style.background-color]="getCurrentTier().color"></div>
+          <span>{{ getCurrentTier().name }}</span>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="quick-stats">
+        <div class="stat-card credit-card">
+          <p class="stat-label">Credit Limit</p>
+          <p class="stat-value">R{{ formatCurrency(getCurrentTier().creditLimit) }}</p>
+        </div>
+        <div class="stat-card rewards-card">
+          <p class="stat-label">Rewards</p>
+          <p class="stat-value-small">{{ getCurrentTier().rewards }}</p>
+        </div>
+      </div>
+
+      <!-- Progress to Next Tier -->
+      <div class="progress-section" *ngIf="currentTier < 4">
+        <div class="progress-header">
+          <span class="progress-label">Progress to Tier {{ currentTier + 1 }}</span>
+          <span class="progress-percentage">{{ progressToNextTier }}%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div 
+            class="progress-bar-fill"
+            [style.width.%]="progressToNextTier"
+            [style.background]="getProgressGradient()">
+          </div>
+        </div>
+        <p class="progress-info">
+          <i class="fas fa-info-circle"></i>
+          Spend R{{ formatCurrency(amountToNextTier) }} more to unlock Tier {{ currentTier + 1 }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Expense Allocation -->
+    <div class="expense-allocation-card">
+      <div class="section-header">
+        <h2>Expense Allocation</h2>
+        <span class="section-subtitle">This Month</span>
+      </div>
+
+      <!-- Total Expenses -->
+      <div class="total-expenses">
+        <p class="total-label">Total Expenses</p>
+        <p class="total-amount">R{{ formatCurrency(totalExpenses) }}</p>
+      </div>
+
+      <!-- Expense List -->
+      <div class="expense-list">
+        <div *ngFor="let expense of expenseAllocation" class="expense-item">
+          <div class="expense-header">
+            <div class="expense-info">
+              <div class="expense-icon" [style.background-color]="expense.color + '20'">
+                <i [class]="'fas ' + expense.icon" [style.color]="expense.color"></i>
+              </div>
+              <div class="expense-details">
+                <p class="expense-category">{{ expense.category }}</p>
+                <p class="expense-percentage">{{ expense.percentage }}% of total</p>
+              </div>
+            </div>
+            <p class="expense-amount">R{{ formatCurrency(expense.amount) }}</p>
+          </div>
+          <div class="expense-progress-bar">
+            <div 
+              class="expense-progress-fill"
+              [style.width.%]="expense.percentage"
+              [style.background-color]="expense.color">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tier Benefits -->
+    <div class="tier-benefits-card">
+      <h2>Tier Benefits</h2>
+      
+      <!-- Tier Selector -->
+      <div class="tier-selector">
+        <button
+          *ngFor="let tier of tiers"
+          [class.active]="selectedTier === tier.id"
+          [style.background-color]="selectedTier === tier.id ? tier.color : undefined"
+          (click)="selectTier(tier.id)"
+          class="tier-selector-btn">
+          {{ tier.name }}
+          <i *ngIf="tier.id === currentTier" class="fas fa-check-circle"></i>
+        </button>
+      </div>
+
+      <!-- Selected Tier Benefits -->
+      <div class="tier-benefits-content" [style.background-color]="getSelectedTier().color + '15'">
+        <div class="tier-benefits-header">
+          <div class="tier-number" [style.background-color]="getSelectedTier().color">
+            {{ selectedTier }}
+          </div>
+          <h3>{{ getSelectedTier().name }}</h3>
+          <span *ngIf="selectedTier === currentTier" class="active-badge">Active</span>
+        </div>
+
+        <!-- Credit & Rewards -->
+        <div class="tier-stats">
+          <div class="tier-stat-item">
+            <p class="tier-stat-label">Credit Limit</p>
+            <p class="tier-stat-value">R{{ formatCurrency(getSelectedTier().creditLimit) }}</p>
+          </div>
+          <div class="tier-stat-item">
+            <p class="tier-stat-label">Rewards Program</p>
+            <p class="tier-stat-value-small">{{ getSelectedTier().rewards }}</p>
+          </div>
+        </div>
+
+        <!-- Benefits List -->
+        <div class="benefits-list">
+          <p class="benefits-title">Benefits Include:</p>
+          <ul>
+            <li *ngFor="let benefit of getSelectedTier().benefits">
+              <i class="fas fa-check-circle" [style.color]="getSelectedTier().color"></i>
+              <span>{{ benefit }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Upgrade Button -->
+        <button 
+          *ngIf="selectedTier > currentTier"
+          class="upgrade-btn"
+          [style.background-color]="getSelectedTier().color"
+          (click)="upgradeTier(selectedTier)">
+          <i class="fas fa-arrow-up"></i>
+          Upgrade to {{ getSelectedTier().name }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="action-btn">
+        <i class="fas fa-chart-line"></i>
+        <p>View Analytics</p>
+      </button>
+      <button class="action-btn">
+        <i class="fas fa-gift"></i>
+        <p>My Rewards</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </button>
+    <button class="nav-item">
+      <i class="fas fa-chart-pie"></i>
+      <span>Analytics</span>
+    </button>
+    <button class="nav-item">
+      <i class="fas fa-wallet"></i>
+      <span>Wallet</span>
+    </button>
+    <button class="nav-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </button>
+  </nav>
+</div>
