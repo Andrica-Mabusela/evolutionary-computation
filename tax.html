@@ -1,0 +1,226 @@
+<!-- tax-calculator.component.html -->
+<div class="tax-calculator-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>Tax Calculator</h1>
+    <p class="subtitle">SARS 2025/2026 - Influencers & Gig Workers</p>
+  </div>
+  
+  <!-- Income Summary Card -->
+  <div class="income-summary-card">
+    <div class="card-header">
+      <h2>Income Summary</h2>
+      <span class="badge">Current Month</span>
+    </div>
+    
+    <div class="summary-grid">
+      <div class="summary-item">
+        <span class="label">Monthly Income</span>
+        <span class="value income">{{ formatCurrency(monthlyIncome) }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Monthly Expenses</span>
+        <span class="value expense">{{ formatCurrency(monthlyExpenses) }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Projected Annual</span>
+        <span class="value">{{ formatCurrency(projectedAnnualIncome) }}</span>
+      </div>
+      <div class="summary-item border-top">
+        <span class="label">Net Monthly</span>
+        <span class="value">{{ formatCurrency(netMonthly) }}</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Tax Calculation Card -->
+  <div class="card">
+    <h2 class="card-title">Tax Calculation</h2>
+    
+    <div class="tax-grid">
+      <div class="tax-item">
+        <span class="label">Current Tax Bracket</span>
+        <span class="value">{{ getCurrentBracketRate() }}%</span>
+      </div>
+      <div class="tax-item">
+        <span class="label">Annual Tax Liability</span>
+        <span class="value highlight">{{ formatCurrency(annualTaxLiability) }}</span>
+      </div>
+      <div class="tax-item">
+        <span class="label">Monthly Tax Amount</span>
+        <span class="value">{{ formatCurrency(monthlyTaxAmount) }}</span>
+      </div>
+      <div class="tax-item">
+        <span class="label">Effective Tax Rate</span>
+        <span class="value">{{ effectiveTaxRate.toFixed(2) }}%</span>
+      </div>
+    </div>
+    
+    <!-- Tax Bracket Indicator -->
+    <div class="bracket-indicator">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="taxBracketProgress"></div>
+      </div>
+      <div class="bracket-labels">
+        <span>R0</span>
+        <span>R237k</span>
+        <span>R512k</span>
+        <span>R857k</span>
+        <span>R1.8M+</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Provisional Tax Payments -->
+  <div class="card">
+    <h2 class="card-title">Provisional Tax Payments</h2>
+    <p class="card-subtitle">Required twice yearly for income &gt; R95,750</p>
+    
+    <div class="payment-grid">
+      <div class="payment-card">
+        <div class="payment-header">
+          <div>
+            <div class="payment-title">1st Payment</div>
+            <div class="payment-date">Due: Aug 31, 2025</div>
+          </div>
+          <div class="payment-amount">{{ formatCurrency(provisionalPayment1) }}</div>
+        </div>
+      </div>
+      
+      <div class="payment-card">
+        <div class="payment-header">
+          <div>
+            <div class="payment-title">2nd Payment</div>
+            <div class="payment-date">Due: Feb 28, 2026</div>
+          </div>
+          <div class="payment-amount">{{ formatCurrency(provisionalPayment2) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Deductions Card -->
+  <div class="card">
+    <h2 class="card-title">Allowable Deductions</h2>
+    <p class="card-subtitle">Business expenses you can claim</p>
+    
+    <div class="deductions-list">
+      <div *ngFor="let deduction of deductions; let i = index" class="deduction-item">
+        <div class="deduction-header">
+          <div class="deduction-info">
+            <div class="deduction-category">{{ deduction.category }}</div>
+            <div class="deduction-description">{{ deduction.description }}</div>
+          </div>
+        </div>
+        <input
+          type="number"
+          [(ngModel)]="deduction.amount"
+          placeholder="R0.00"
+          class="deduction-input"
+        />
+      </div>
+    </div>
+    
+    <div class="total-deductions">
+      <span>Total Monthly Deductions</span>
+      <span class="total-amount">{{ formatCurrency(totalDeductions + transactionDeductions) }}</span>
+    </div>
+  </div>
+  
+  <!-- Recent Transactions -->
+  <div class="card">
+    <div class="transactions-header">
+      <h2 class="card-title">Recent Transactions</h2>
+      
+      <div class="filter-buttons">
+        <button
+          *ngFor="let filter of ['all', 'income', 'expense']"
+          [class.active]="transactionFilter === filter"
+          (click)="setTransactionFilter(filter)"
+          class="filter-btn"
+        >
+          {{ filter.charAt(0).toUpperCase() + filter.slice(1) }}
+        </button>
+      </div>
+    </div>
+    
+    <div class="transactions-list">
+      <div
+        *ngFor="let transaction of filteredTransactions"
+        class="transaction-item"
+        [class.income-border]="transaction.type === 'income'"
+        [class.expense-border]="transaction.type === 'expense'"
+      >
+        <div class="transaction-icon">
+          {{ transaction.type === 'income' ? '↓' : '↑' }}
+        </div>
+        
+        <div class="transaction-details">
+          <div class="transaction-description">{{ transaction.description }}</div>
+          <div class="transaction-meta">
+            <span>{{ transaction.date }}</span>
+            <span>•</span>
+            <span>{{ transaction.category }}</span>
+            <ng-container *ngIf="transaction.deductible">
+              <span>•</span>
+              <span class="deductible-badge">Deductible</span>
+            </ng-container>
+          </div>
+          <div
+            class="transaction-amount"
+            [class.income-amount]="transaction.type === 'income'"
+            [class.expense-amount]="transaction.type === 'expense'"
+          >
+            {{ transaction.type === 'income' ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Compliance Information -->
+  <div class="card">
+    <h2 class="card-title">SARS Compliance</h2>
+    
+    <div class="registration-status">
+      <div
+        class="status-card"
+        [class.warning]="requiresRegistration && !isRegistered"
+        [class.success]="!requiresRegistration || isRegistered"
+      >
+        <span class="status-icon">{{ requiresRegistration ? '⚠️' : '✓' }}</span>
+        <div class="status-content">
+          <div class="status-title">Provisional Tax Registration</div>
+          <div class="status-message">
+            {{ requiresRegistration 
+              ? 'Required - Your income exceeds R95,750' 
+              : 'Not required - Income below threshold' }}
+          </div>
+          <button
+            *ngIf="requiresRegistration"
+            (click)="toggleRegistration()"
+            class="register-btn"
+          >
+            {{ isRegistered ? 'Registered ✓' : 'Register Now' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="compliance-section">
+      <h3 class="section-title">Compliance Checklist</h3>
+      <div class="checklist">
+        <div *ngFor="let item of complianceChecklist" class="checklist-item">
+          ✓ {{ item }}
+        </div>
+      </div>
+    </div>
+    
+    <div class="compliance-section">
+      <h3 class="section-title">Important Notes</h3>
+      <p *ngFor="let note of importantNotes" class="note-item">
+        • {{ note }}
+      </p>
+    </div>
+  </div>
+</div>
